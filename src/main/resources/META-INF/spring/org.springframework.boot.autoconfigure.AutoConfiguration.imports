@@ -1,1 +1,2 @@
 com.jswone.observability.autoconfigure.ErrorObservabilityAutoConfiguration
+com.jswone.observability.tracing.TracingAutoConfiguration
