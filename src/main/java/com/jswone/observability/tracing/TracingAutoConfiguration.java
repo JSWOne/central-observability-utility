@@ -20,7 +20,11 @@ public class TracingAutoConfiguration {
     @ConditionalOnProperty(prefix = "jsw.observability.tracing", name = "enabled", havingValue = "true")
     public FilterRegistrationBean<TraceContextMdcFilter> traceContextMdcFilter(TracingProperties properties) {
         TraceContextMdcFilter filter = new TraceContextMdcFilter(
-                properties.getTraceHeaderName(), properties.getTraceIdMdcKey(), properties.getSpanIdMdcKey());
+                properties.getTraceHeaderName(),
+                properties.getTraceIdMdcKey(),
+                properties.getSpanIdMdcKey(),
+                properties.getRequestHeaderName(),
+                properties.getRequestIdMdcKey());
         FilterRegistrationBean<TraceContextMdcFilter> registration = new FilterRegistrationBean<>(filter);
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return registration;

@@ -21,4 +21,14 @@ public class TracingProperties {
     private String traceIdMdcKey = "traceId";
 
     private String spanIdMdcKey = "spanId";
+
+    /**
+     * Incoming request header carrying a caller-supplied request id. Null (the default) disables
+     * request-id tracking entirely, so services that don't want a third MDC key see no behavior
+     * change. Set both this and {@link #requestIdMdcKey} to opt in.
+     */
+    private String requestHeaderName;
+
+    /** MDC key the resolved request id is stored under. Null disables request-id tracking. */
+    private String requestIdMdcKey;
 }
