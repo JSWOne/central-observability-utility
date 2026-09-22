@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!--
+      Event-level masking: the turbo filter redacts the event itself, so every appender sees the
+      masked text — the console below, and the OTLP log appender the javaagent installs. The
+      %maskedMsg conversion rule would only have covered this pattern, leaving the export raw.
+    -->
+    <turboFilter class="com.jswone.observability.masking.logback.PiiMaskingTurboFilter"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} trace=%X{traceId} span=%X{spanId} req=%X{requestId} : %msg%n%ex</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

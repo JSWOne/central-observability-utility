@@ -1,0 +1,48 @@
+# Single swap point for the real backends. Locally these pipelines fan out to Tempo/Loki/
+# Prometheus; in a JSW environment the same app emits the same OTLP and only the exporters
+# below change to point at TraceX/LogX.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+
+exporters:
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    # Keeps resource attributes (service.name, and so on) as metric labels, so a dashboard can
+    # split by service the same way traces and logs do.
+    resource_to_telemetry_conversion:
+      enabled: true
+  debug:
+    verbosity: normal
+
+service:
+  telemetry:
+    logs:
+      level: info
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo, debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus, debug]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/loki, debug]

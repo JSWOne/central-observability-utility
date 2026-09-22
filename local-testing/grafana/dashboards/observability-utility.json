@@ -1,0 +1,94 @@
+{
+  "uid": "obs-utility",
+  "title": "central-observability-utility",
+  "tags": ["jsw", "observability"],
+  "timezone": "browser",
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "label": "Service",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": "label_values(http_server_request_duration_seconds_count, service_name)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "HTTP request rate by route",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (service_name, http_route) (rate(http_server_request_duration_seconds_count{service_name=~\"$service\"}[1m]))",
+          "legendFormat": "{{service_name}} {{http_route}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP p95 latency by route",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le, service_name, http_route) (rate(http_server_request_duration_seconds_bucket{service_name=~\"$service\"}[5m])))",
+          "legendFormat": "{{service_name}} {{http_route}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Business error events (ErrorEventLogger)",
+      "description": "Micrometer Observation 'business.error.event' exported as a metric. Boot 3 only: on Boot 2.6 the starter's registry has no meter handler attached.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (service_name, event_name) (rate(business_error_event_milliseconds_count[1m]))",
+          "legendFormat": "{{service_name}} {{event_name}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "JVM heap used",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (service_name) (jvm_memory_used_bytes{service_name=~\"$service\", jvm_memory_type=\"heap\"})",
+          "legendFormat": "{{service_name}}"
+        }
+      ]
+    },
+    {
+      "type": "logs",
+      "title": "Logs (click a line's TraceID to jump to its trace)",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 11, "w": 24, "x": 0, "y": 16 },
+      "options": { "showTime": true, "wrapLogMessage": true, "enableLogDetails": true },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=~\"$service\"}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "version": 1
+}

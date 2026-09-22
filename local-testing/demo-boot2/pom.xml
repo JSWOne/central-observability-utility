@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.6.15</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.jswone.demo</groupId>
+    <artifactId>demo-boot2</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <!--
+      The same exercise harness on the old line: Spring Boot 2.6, Java 11, javax.servlet, and
+      Log4j2 instead of Logback so the other masking hook gets covered too.
+    -->
+
+    <properties>
+        <java.version>11</java.version>
+        <maven.compiler.release>11</maven.compiler.release>
+        <central-observability.version>0.1.0-SNAPSHOT</central-observability.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.jswone.observability</groupId>
+            <artifactId>central-observability-spring-boot2</artifactId>
+            <version>${central-observability.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

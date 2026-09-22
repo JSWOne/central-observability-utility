@@ -1,0 +1,38 @@
+apiVersion: 1
+
+datasources:
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: -5m
+        spanEndTimeShift: 5m
+        filterByTraceID: true
+      lokiSearch:
+        datasourceUid: loki
+
+  - name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      derivedFields:
+        # The trace id the OTEL javaagent stamps on every exported log record. This is what makes
+        # a log line in Loki clickable straight into its trace in Tempo.
+        - name: TraceID
+          matcherType: label
+          matcherRegex: trace_id
+          url: '${__value.raw}'
+          datasourceUid: tempo
+
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true

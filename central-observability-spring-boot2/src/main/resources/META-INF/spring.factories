@@ -1,0 +1,7 @@
+# Spring Boot 2.6 predates both @AutoConfiguration and
+# META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports (2.7+),
+# so these configurations are registered the 2.x way.
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.jswone.observability.autoconfigure.ErrorObservabilityAutoConfiguration,\
+com.jswone.observability.tracing.TracingAutoConfiguration,\
+com.jswone.observability.logging.LoggingAspectAutoConfiguration

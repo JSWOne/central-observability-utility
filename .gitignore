@@ -2,3 +2,6 @@ target/
 .idea/
 *.iml
 .claude/
+
+# local-testing demo build output
+local-testing/demo-boot*/target/

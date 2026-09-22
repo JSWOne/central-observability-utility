@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.jswone.observability</groupId>
+        <artifactId>central-observability-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>central-observability-spring-boot2</artifactId>
+    <name>central-observability-spring-boot2</name>
+    <description>Spring Boot 2.6+ / Java 11 starter: same observability features as central-observability-utility, on javax.servlet and spring.factories</description>
+
+    <!--
+      Mirrors central-observability-utility for services still on Boot 2.6+/Java 11. The four
+      classes here are duplicated rather than shared because they differ in ways that cannot be
+      expressed in one artifact: javax.servlet vs jakarta.servlet, and @Configuration +
+      spring.factories vs @AutoConfiguration + AutoConfiguration.imports. Everything else lives
+      in central-observability-core and is shared verbatim. Keep both copies in step.
+    -->
+
+    <properties>
+        <maven.compiler.release>${java.legacy.version}</maven.compiler.release>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot2.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.jswone.observability</groupId>
+            <artifactId>central-observability-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <!-- Not in the Boot 2.6 BOM (Micrometer 1.8), so brought in explicitly. Compile scope:
+             unlike the Boot 3 starter, consuming services do not already have it. -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-observation</artifactId>
+            <version>${micrometer-observation.version}</version>
+        </dependency>
+        <!-- For TraceContextMdcFilter. Assumed present on any consuming servlet-web service;
+             the filter's autoconfiguration only activates when javax.servlet.Filter is on the
+             classpath, so it's harmless for non-web consumers of this starter. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!--
+          Compile scope on purpose. The javaagent does NOT hand its own OTEL API to application
+          code: it shades its copy and bridges calls to whatever opentelemetry-api the
+          application carries, across versions. With this marked provided, TraceContextMdcFilter
+          throws ClassNotFoundException on io.opentelemetry.api.trace.Span for every request as
+          soon as jsw.observability.tracing.enabled=true.
+        -->
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- For LoggingAspectAutoConfiguration (AspectJExpressionPointcut, DefaultPointcutAdvisor).
+             Consuming services already have these via spring-boot-starter-aop. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk-testing</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

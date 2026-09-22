@@ -3,102 +3,102 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.2</version>
-        <relativePath/>
-    </parent>
 
     <groupId>com.jswone.observability</groupId>
-    <artifactId>central-observability-utility</artifactId>
+    <artifactId>central-observability-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
-    <name>central-observability-utility</name>
-    <description>Shared starter for OTEL/MDC trace correlation, async-context propagation, PII-masking log converters, a generic request/response logging aspect, and structured business-error events across JSW services</description>
+    <packaging>pom</packaging>
+    <name>central-observability-parent</name>
+    <description>Shared observability starters for JSW services: OTEL/MDC trace correlation, async-context propagation, PII-masking log converters, a generic request/response logging aspect, and structured business-error events</description>
+
+    <!--
+      Deliberately NOT inheriting from spring-boot-starter-parent: this build produces one
+      artifact for Spring Boot 3.x consumers and another for Spring Boot 2.6+ consumers, and a
+      single Boot parent cannot manage both lines. Each starter module imports its own
+      spring-boot-dependencies BOM instead.
+    -->
+
+    <modules>
+        <module>central-observability-core</module>
+        <module>central-observability-utility</module>
+        <module>central-observability-spring-boot2</module>
+    </modules>
 
     <properties>
-        <java.version>21</java.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!--
+          The core and Boot 2 modules compile against the OLDEST supported dependency versions
+          and target Java 11, so their bytecode runs unchanged on both lines. Compiling against
+          the newest and running on the oldest would be the unsafe direction.
+        -->
+        <java.legacy.version>11</java.legacy.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <spring-boot2.version>2.6.15</spring-boot2.version>
+        <spring-boot3.version>3.4.2</spring-boot3.version>
+        <spring2.version>5.3.27</spring2.version>
+        <micrometer-observation.version>1.10.13</micrometer-observation.version>
+        <slf4j.legacy.version>1.7.36</slf4j.legacy.version>
+        <logback.legacy.version>1.2.11</logback.legacy.version>
+        <log4j.legacy.version>2.17.2</log4j.legacy.version>
+        <aspectjweaver.legacy.version>1.9.7</aspectjweaver.legacy.version>
+        <lombok.version>1.18.36</lombok.version>
+        <opentelemetry.version>1.45.0</opentelemetry.version>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-observation</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <!-- For TraceContextMdcFilter. Assumed present on any consuming servlet-web service;
-             the filter's autoconfiguration only activates when jakarta.servlet.Filter is on
-             the classpath, so it's harmless for non-web consumers of this starter. -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <!-- API only; the OTEL javaagent provides the real implementation at runtime. -->
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-api</artifactId>
-            <version>1.45.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <!-- For PiiMaskingMessageConverter. Consuming services on Logback already have this. -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <!-- For PiiMaskingRewritePolicy. Consuming services on Log4j2 already have this. -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <!-- For RequestResponseLoggingAspect / LoggingAspectAutoConfiguration (AspectJExpressionPointcut,
-             DefaultPointcutAdvisor). Consuming services already have these via spring-boot-starter-aop. -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aop</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjweaver</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-sdk-testing</artifactId>
-            <version>1.45.0</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-api</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-sdk-testing</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <extensions>
+            <extension>
+                <groupId>com.google.cloud.artifactregistry</groupId>
+                <artifactId>artifactregistry-maven-wagon</artifactId>
+                <version>2.2.0</version>
+            </extension>
+        </extensions>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
+                    <configuration>
+                        <release>${maven.compiler.release}</release>
+                        <!--
+                          Annotation processors are discovered from the compile classpath on
+                          purpose. Pinning annotationProcessorPaths would silence not just
+                          Lombok but Log4j2's PluginProcessor, and without it the
+                          Log4j2Plugins.dat descriptor that makes <PiiMaskingRewritePolicy/>
+                          resolvable in a log4j2.xml is never generated.
+                        -->
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.2.5</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
     <repositories>
         <repository>
@@ -140,14 +140,4 @@
             <url>artifactregistry://asia-south1-maven.pkg.dev/modular-bucksaw-305821/jsw-one-msme-artifacts-snapshot</url>
         </snapshotRepository>
     </distributionManagement>
-
-    <build>
-        <extensions>
-            <extension>
-                <groupId>com.google.cloud.artifactregistry</groupId>
-                <artifactId>artifactregistry-maven-wagon</artifactId>
-                <version>2.2.0</version>
-            </extension>
-        </extensions>
-    </build>
 </project>
